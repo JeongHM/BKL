@@ -1,5 +1,9 @@
-from flask import current_app
+import hashlib
 
+from flask import current_app
+from datetime import datetime
+
+from models import mongo
 from validators.users import (UserListSchema,
                               UserSignInSchema,
                               UserSignUpSchema)
@@ -78,7 +82,7 @@ class UserService(object):
             return False, None
 
         else:
-            return False, None
+            return True, None
 
     def user_signup(self) -> tuple:
         """
@@ -86,14 +90,21 @@ class UserService(object):
         :return: Boolean, (String or List)
         """
         try:
-            pass
+            email_check = self.check_email_can_use()
+            if not email_check:
+                return False, 'ALREADY_USE_EMAIL'
+
+            if not self.set_salt_hash_password():
+                raise ValueError('Fail to set hash password')
+
+            mongo.db.users.insert(self._body)
 
         except Exception as e:
             current_app.logger.error(e)
             return False, None
 
         else:
-            return False, None
+            return True, None
 
     def user_signin(self) -> tuple:
         """
@@ -101,14 +112,15 @@ class UserService(object):
         :return: Boolean, (String or List)
         """
         try:
-            pass
+            if not self.check_password():
+                return False, 'PASSWORD_INVALID'
 
         except Exception as e:
             current_app.logger.error(e)
             return False, None
 
         else:
-            return False, None
+            return True, None
 
     def user_signout(self) -> tuple:
         """
@@ -125,5 +137,51 @@ class UserService(object):
         else:
             return False, None
 
+    def set_salt_hash_password(self) -> bool:
+        try:
+            salt = str(datetime.utcnow().timestamp()).split('.')[0]
+            password = self._body.get('password')
+            hash_password = hashlib.sha512(str(salt + password).encode(encoding='utf-8')).hexdigest()
 
+            self._body['password'] = hash_password
+            self._body['salt'] = salt
+
+        except Exception as e:
+            current_app.logger.error(e)
+            return False
+
+        else:
+            return True
+
+    def check_password(self) -> bool:
+        try:
+            email, password = self._body.get('email'), self._body.get('password')
+
+            user = mongo.db.users.find_one({"email": email})
+            user_password = user.get('password')
+            user_salt = user.get('salt')
+
+            hash_password = hashlib.sha512(str(user_salt + password).encode(encoding='utf-8')).hexdigest()
+            if not user_password == hash_password:
+                raise ValueError('Incorrect Password')
+
+        except Exception as e:
+            current_app.logger.error(e)
+            return False
+
+        else:
+            return True
+
+    def check_email_can_use(self):
+        try:
+            user = mongo.db.users.find_one({"email": self._body.get('email')})
+            if user:
+                raise ValueError('Already Regist Email')
+
+        except Exception as e:
+            current_app.logger.error(e)
+            return False
+
+        else:
+            return True
 
