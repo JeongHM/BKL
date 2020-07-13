@@ -18,6 +18,51 @@ class UserService(object):
         self._param = param
         self._body = body
 
+    def get_user_object_by_email(self) -> tuple:
+        """
+        get user object by email
+        :return:
+        """
+        try:
+            email = self._param.get('email')
+            user = mongo.db.users.find_one({'email': email})
+            items = UserService.make_user_object(user_list=[user])
+
+        except Exception as e:
+            current_app.logger.error(e)
+            return False, False
+
+        else:
+            return items, True
+
+    @staticmethod
+    def make_user_object(user_list: list) -> bool or list:
+        """
+        make users return format
+        :param user_list: Users Model Object
+        :return:
+        """
+        try:
+            items = {
+                'users': [
+                    {
+                        'name': user.get('name'),
+                        'email': user.get('email'),
+                        'birth': user.get('birth')
+                    } for user in user_list
+                ]
+            }
+
+            if not items:
+                return None
+
+        except Exception as e:
+            current_app.logger.error(e)
+            return False
+
+        else:
+            return items
+
     def validate_user_list_param(self) -> bool:
         """
         validate parameters when list up users info
@@ -75,14 +120,16 @@ class UserService(object):
         :return: Boolean, (String or List)
         """
         try:
-            pass
+            page, size = int(self._param.get('page')), int(self._param.get('page'))
+            users = list(mongo.db.users.find())[(page - 1) * size: (page * size) + 1]
+            items = UserService.make_user_object(user_list=users)
 
         except Exception as e:
             current_app.logger.error(e)
             return False, None
 
         else:
-            return True, None
+            return items, True
 
     def user_signup(self) -> tuple:
         """
