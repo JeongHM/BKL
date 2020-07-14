@@ -10,6 +10,12 @@ from flask_cors import CORS
 def create_app():
     app = Flask(import_name=__name__)
     app.secret_key = os.urandom(16)
+    app.config['MONGO_URI'] = "mongodb://{}:{}@{}:{}/{}?authSource=admin".format(os.getenv('DB_USER'),
+                                                                                 os.getenv('DB_PASSWORD'),
+                                                                                 os.getenv('DB_HOST'),
+                                                                                 os.getenv('DB_PORT'),
+                                                                                 os.getenv('DB_')
+    )
 
     logger = logging.getLogger(name=__name__)
     logger.setLevel(level=logging.INFO)
@@ -24,8 +30,11 @@ def create_app():
     app.logger.addHandler(hdlr=logger_handler)
     app.logger.setLevel(logging.INFO)
 
+    from models import mongo
+    mongo.init_app(app=app)
+
     from controllers.users import users_blueprint
-    app.register_blueprint(blueprint=users_blueprint, url_prefix='/users')
+    app.register_blueprint(blueprint=users_blueprint, url_prefix='/v1/users')
 
     CORS(app=app)
 
