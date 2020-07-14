@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  redis:
+    container_name: flask_redis
+    image: redis:alpine
+    ports:
+    - '6379:6379'
+
+  mongodb:
+    container_name: flask_mongo_db
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: MyPassWord
+    ports:
+    - '27017:27017'
+
+  application:
+    container_name: flask_application
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_USER: root
+      - DB_PASSWORD: MyPassWord
+      - DB_HOST: localhost
+      - DB_PORT: 27017
+      - DB_COLLECTION: users
+    ports:
+    - '5000:5000'
