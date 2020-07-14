@@ -14,7 +14,7 @@ def create_app():
                                                                                  os.getenv('DB_PASSWORD'),
                                                                                  os.getenv('DB_HOST'),
                                                                                  os.getenv('DB_PORT'),
-                                                                                 os.getenv('DB_')
+                                                                                 os.getenv('DB_COLLECTION')
     )
 
     logger = logging.getLogger(name=__name__)
