@@ -1,11 +1,14 @@
 from flask import Blueprint, request, jsonify
 
+from services.auth import AuthService
 from services.users import UserService
+from utills.decorators import login_required
 
 users_blueprint = Blueprint(name='users', import_name=__name__)
 
 
 @users_blueprint.route(rule='', methods=['GET'], endpoint='get_users_list')
+@login_required
 def get_users_list():
     param = dict(request.args)
     user_service = UserService(param=param)
@@ -22,6 +25,7 @@ def get_users_list():
 
 
 @users_blueprint.route(rule='/detail', methods=['GET'], endpoint='get_user_detail')
+@login_required
 def get_user_detail():
     param = dict(request.args)
     user_service = UserService(param=param)
@@ -51,12 +55,27 @@ def user_signup():
 @users_blueprint.route(rule='/signin', methods=['POST'], endpoint='user_signin')
 def user_signin():
     body = request.get_json()
+    email = body.get('email')
     user_service = UserService(body=body)
 
+    validate = user_service.validate_signin_body()
+    if not validate:
+        return 'FAIL', 404
+
+    item, code = user_service.user_signin()
+    if not item:
+        return 'FAIL', 404
+
+    access_token, code = AuthService.generate_access_token(email=email)
+    if not access_token:
+        return 'FAIL', 404
+
+    print(access_token)
     return 'SUCCESS', 200
 
 
 @users_blueprint.route(rule='/signout', methods=['POST'], endpoint='user_signout')
+@login_required
 def user_signout():
     body = request.get_json()
     user_service = UserService(body=body)
