@@ -88,10 +88,11 @@ def user_signin():
 @users_blueprint.route(rule='/signout', methods=['POST'], endpoint='user_signout')
 @header_required
 @login_required
+@response_formatted
 def user_signout():
-    access_token = request.headers.get('x-access-token')
-    email = request.headers.get('x-api-email')
-    user_service = UserService()
-
-    return 'SUCCESS', None, 200
+    email = request.headers.get('x-user-email')
+    item, code = UserService.user_signout(email=email)
+    if not item:
+        return RESPONSE_CODE[code], None, 400
+    return RESPONSE_CODE[code], None, 200
 

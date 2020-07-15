@@ -163,7 +163,7 @@ class UserService(object):
         """
         try:
             email = self._body.get('email')
-            fail_count = int(r.get(name=email))
+            fail_count = int(r.get(name=email)) if r.get(name=email) else 0
             if fail_count >= 5:
                 return False, 'BLOCKED_EMAIL'
 
@@ -181,20 +181,23 @@ class UserService(object):
         else:
             return True, 'SUCCESS'
 
-    def user_signout(self) -> tuple:
+    @staticmethod
+    def user_signout(email) -> tuple:
         """
         user sign up business logic
         :return: Boolean, (String or List)
         """
         try:
-            pass
+            user = mongo.db.users.find_one({'email': email})
+            del user['access_token']
+            mongo.db.users.update({'email': email}, user)
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'SUCCESS'
 
         else:
-            return False, None
+            return True, 'SUCCESS'
 
     def set_salt_hash_password(self) -> bool:
         """

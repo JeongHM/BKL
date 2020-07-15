@@ -41,16 +41,17 @@ class AuthService(object):
 
     def validate_access_token(self) -> tuple:
         try:
-            db_access_token = mongo.db.users.find_one({'email': self._email})
+            db_access_token = mongo.db.users.find_one({'email': self._email}).get('access_token')
+
             if not self._access_token == db_access_token:
-                raise ValueError('Invalid Token')
+                raise ValueError('Invalid Token 1')
 
             payload = jwt.decode(jwt=self._access_token,
                                  key=os.getenv('SECRET_KEY'))
 
             user_email = payload.get('sub')
             if not user_email or user_email != self._email:
-                raise ValueError('Invalid Token')
+                raise ValueError('Invalid Token 2')
 
             exp = payload.get('exp')
             if exp < int(datetime.utcnow().timestamp()):
