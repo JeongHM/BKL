@@ -13,6 +13,10 @@ RUN unlink /usr/bin/python3 \
     && ln -s /usr/bin/python3.7 /usr/bin/python3 \
     && apt-get install -y python3-pip
 
+RUN apt-get install curl \
+    && curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+    && apt-get install -y nodejs
+
 
 COPY . .
 
