@@ -24,9 +24,12 @@ services:
       dockerfile: Dockerfile
     environment:
       - DB_USER: root
-      - DB_PASSWORD: MyPassWord
       - DB_HOST: localhost
       - DB_PORT: 27017
+      - DB_PASSWORD: MyPassWord
       - DB_COLLECTION: users
+      - REDIS_HOST: localhost
+      - REDIS_PORT: 6379
+      - REDIS_DB: 0
     ports:
     - '5000:5000'
