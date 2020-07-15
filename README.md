@@ -52,3 +52,27 @@ Pre-requisites
 - pip3
 - redis
 - mongoDB (v4.2.8)
+
+Quick Start
+---
+```shell script
+
+# pwd : ~~/BKL
+
+# start flask application / mongo db / redis
+$ sh start.sh
+
+# attach docker shell
+$ docker exec -it flask_application bash
+
+# after build docker-compose
+$ cd swagger
+
+# install dependencies
+$ npm install 
+
+# start swagger server
+$ node index.js
+
+# swagger server = http://127.0.0.1/3031/docs
+```
