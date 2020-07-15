@@ -34,15 +34,20 @@ class AuthService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'FAIL_GENERATE_TOKEN'
 
         else:
-            return access_token, True
+            return {'access_token': access_token}, 'SUCCESS'
 
     def validate_access_token(self) -> tuple:
         try:
+            db_access_token = mongo.db.users.find_one({'email': self._email})
+            if not self._access_token == db_access_token:
+                raise ValueError('Invalid Token')
+
             payload = jwt.decode(jwt=self._access_token,
                                  key=os.getenv('SECRET_KEY'))
+
             user_email = payload.get('sub')
             if not user_email or user_email != self._email:
                 raise ValueError('Invalid Token')
@@ -53,21 +58,22 @@ class AuthService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'INVALID_TOKEN'
 
         else:
-            return True, None
+            return True, 'SUCCESS'
 
     def refresh_access_token(self) -> tuple:
         try:
-            refresh_token = AuthService.generate_access_token(email=self._email)
+            refresh_token, code = AuthService.generate_access_token(email=self._email)
+
             if not refresh_token:
                 raise ValueError('Refresh Token Error')
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'FAIL_REFRESH_TOKEN'
 
         else:
-            return refresh_token, True
+            return refresh_token, 'SUCCESS'
 

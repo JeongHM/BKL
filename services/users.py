@@ -30,10 +30,10 @@ class UserService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, False
+            return False, 'FAIL_USER_LIST_UP'
 
         else:
-            return items, True
+            return items, 'SUCCESS'
 
     @staticmethod
     def make_user_object(user_list: list) -> bool or list:
@@ -50,7 +50,8 @@ class UserService(object):
                         'email': user.get('email'),
                         'birth': user.get('birth')
                     } for user in user_list
-                ]
+                ],
+                'total_count': len(user_list)
             }
 
             if not items:
@@ -63,7 +64,7 @@ class UserService(object):
         else:
             return items
 
-    def validate_user_list_param(self) -> bool:
+    def validate_user_list_param(self) -> tuple:
         """
         validate parameters when list up users info
         :return: Boolean
@@ -75,12 +76,12 @@ class UserService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False
+            return False, 'INVALID_LIST_UP_SCHEMA'
 
         else:
-            return True
+            return True, 'SUCCESS'
 
-    def validate_signup_body(self) -> bool:
+    def validate_signup_body(self) -> tuple:
         """
         validate body parameters when user sign up
         :return: bool
@@ -92,12 +93,12 @@ class UserService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False
+            return False, 'INVALID_SIGN_UP_SCHEMA'
 
         else:
-            return True
+            return True, 'SUCCESS'
 
-    def validate_signin_body(self) -> bool:
+    def validate_signin_body(self) -> tuple:
         """
         validate body parameters when user sign in
         :return: bool
@@ -109,10 +110,10 @@ class UserService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False
+            return False, 'INVALID_SIGN_IN_SCHEMA'
 
         else:
-            return True
+            return True, 'SUCCESS'
 
     def get_users_list(self) -> tuple:
         """
@@ -120,16 +121,18 @@ class UserService(object):
         :return: Boolean, (String or List)
         """
         try:
-            page, size = int(self._param.get('page')), int(self._param.get('page'))
+            page, size = int(self._param.get('page')), int(self._param.get('size'))
             users = list(mongo.db.users.find())[(page - 1) * size: (page * size) + 1]
             items = UserService.make_user_object(user_list=users)
+            if items is None:
+                return False, 'EMPTY_OBJECT'
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'FAIL_USER_LIST_UP'
 
         else:
-            return items, True
+            return items, 'SUCCESS'
 
     def user_signup(self) -> tuple:
         """
@@ -139,7 +142,7 @@ class UserService(object):
         try:
             email_check = self.check_email_can_use()
             if not email_check:
-                return False, 'ALREADY_USE_EMAIL'
+                return False, 'ALREADY_EXIST_EMAIL'
 
             if not self.set_salt_hash_password():
                 raise ValueError('Fail to set hash password')
@@ -148,10 +151,10 @@ class UserService(object):
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'FAIL_USER_SIGN_UP'
 
         else:
-            return True, None
+            return True, 'SUCCESS'
 
     def user_signin(self) -> tuple:
         """
@@ -160,14 +163,14 @@ class UserService(object):
         """
         try:
             if not self.check_password():
-                return False, 'PASSWORD_INVALID'
+                raise ValueError('incorrect password')
 
         except Exception as e:
             current_app.logger.error(e)
-            return False, None
+            return False, 'FAIL_USER_SIGN_IN'
 
         else:
-            return True, None
+            return True, 'SUCCESS'
 
     def user_signout(self) -> tuple:
         """
