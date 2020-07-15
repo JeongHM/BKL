@@ -23,13 +23,15 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - DB_USER: root
-      - DB_HOST: localhost
-      - DB_PORT: 27017
-      - DB_PASSWORD: MyPassWord
-      - DB_COLLECTION: users
-      - REDIS_HOST: localhost
-      - REDIS_PORT: 6379
-      - REDIS_DB: 0
+      DB_USER: root
+      DB_HOST: flask_mongo_db
+      DB_PORT: 27017
+      DB_PASSWORD: MyPassWord
+      DB_COLLECTION: users
+      REDIS_HOST: flask_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SECRET_KEY: CHANGE_SECRET_KEY
+      X_API_KEY: 7446873594394560ee6b61db6bc96d1d1e36d59bb04118a7c30e84d6b1452bb2
     ports:
     - '5000:5000'
