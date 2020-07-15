@@ -1,6 +1,15 @@
 BKL Project
 ---
-This is Login REST API
+Login REST API
+- Sign up
+- Sign in
+- Sign out
+- Search user info
+- Search user detail
+- Create JWT
+- Validate JWT
+- Refresh JWT
+- User Login Block
 
 Structure of repo
 ---
@@ -41,3 +50,5 @@ Pre-requisites
 - Python3
 - Docker version 19.03.8 / Docker CLI
 - pip3
+- redis
+- mongoDB (v4.2.8)
