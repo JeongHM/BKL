@@ -1,0 +1,313 @@
+#openapi: 3.0.0
+#
+#info:
+#  title: BKL Test Project
+#  version: 0.0.1
+#  description: '<h2> x-api-key: 7446873594394560ee6b61db6bc96d1d1e36d59bb04118a7c30e84d6b1452bb2</h2> <h3><br>1. API 호출 시 해당 API키를 꼭 헤더 에 포함하여 보내주시면 됩니다.!<br>2.로그인 후 받은 access_token은 x-access-token 헤더 값에 추가해서 보내주시면 됩니다.!<br>3.x-user-email값은 해당 로그인 한 유저의 email값을 넣어주시면 됩니다. <br>4.protocol, domain, version은 default 값이 셋팅 되어있어 API 사용만 하시면 됩니다.'
+#
+#
+#
+#servers:
+#  - url: '{protocol}://{domain}/{version}'
+#    variables:
+#      protocol:
+#        enum:
+#          - http
+#          - https
+#        default: http
+#      domain:
+#        enum:
+#          - 127.0.0.1:5000
+#          - api.staging.co.kr
+#        default: 127.0.0.1:5000
+#      version:
+#        enum:
+#          - v1
+#          - v2
+#        default: v1
+
+tags:
+- name: users
+  description: 유저 관련 API 목록
+- name: auth
+  description: 인증 관련 API 목록
+
+security:
+  - ApiKey: []
+  - AccessToken: []
+  - UserEmail: []
+
+paths:
+  /users:
+    get:
+      tags:
+      - users
+      summary: '유저 정보 조회 API'
+      security:
+      - ApiKey: []
+      - AccessToken: []
+      - UserEmail: []
+      parameters:
+      - $ref: '#/components/parameters/page_param'
+      - $ref: '#/components/parameters/size_param'
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/success_response'
+                - type: object
+                  properties:
+                    result:
+                      type: object
+                      properties:
+                        users:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/user'
+
+  /users/signup:
+    post:
+      tags:
+      - users
+      summary: '유저 회원가입 API'
+      security:
+      - ApiKey: []
+      requestBody:
+        $ref: '#/components/requestBodies/user_signup'
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/success_response'
+
+  /users/signin:
+    post:
+      tags:
+      - users
+      summary: '유저 로그인 API'
+      security:
+      - ApiKey: []
+      requestBody:
+        $ref: '#/components/requestBodies/user_signin'
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/success_response'
+
+  /users/signout:
+    post:
+      tags:
+      - users
+      summary: '유저 로그아웃 API'
+      security:
+      - ApiKey: []
+      - AccessToken: []
+      - UserEmail: []
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/success_response'
+
+  /users/detail:
+    get:
+      tags:
+      - users
+      summary: '유저 상세정보 조회 API'
+      security:
+      - ApiKey: []
+      - AccessToken: []
+      - UserEmail: []
+      parameters:
+      - $ref: '#/components/parameters/email_param'
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/success_response'
+                - type: object
+                  properties:
+                    result:
+                      type: object
+                      properties:
+                        user:
+                          $ref: '#/components/schemas/user'
+
+
+  /auth/validate:
+    post:
+      tags:
+      - auth
+      summary: 'JWT 토큰 정보 검증 API'
+      description: '헤더 값 내 x-access-token 값으로 검증'
+      security:
+      - ApiKey: []
+      - AccessToken: []
+      - UserEmail: []
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/success_response'
+
+  /auth/refresh:
+    post:
+      tags:
+      - auth
+      summary: 'JWT 토큰 정보 Refresh API'
+      description: '헤더 값 내 x-access-token 값 Refresh'
+      security:
+      - ApiKey: []
+      - AccessToken: []
+      - UserEmail: []
+      responses:
+        200:
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/success_response'
+
+components:
+  parameters:
+    page_param:
+      in: query
+      name: page
+      schema:
+        type: integer
+        example: 1
+    size_param:
+      in: query
+      name: size
+      schema:
+        type: integer
+        example: 15
+    user_id_param:
+      in: path
+      name: user_id
+      required: true
+      schema:
+        type: integer
+        example: 1
+    email_param:
+      in: query
+      name: email
+      schema:
+        type: string
+        format: email
+
+
+  requestBodies:
+    token:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/token'
+    user:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user'
+
+    user_signin:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user_login'
+
+    user_signup:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user_signup'
+
+  schemas:
+    success_response:
+      type: object
+      properties:
+        message:
+          type: string
+          format: 'success'
+        result:
+          type: object
+
+    user:
+      type: object
+      properties:
+        name:
+          type: string
+          example: '이름'
+        email:
+          type: string
+          format: email
+        birth:
+          type: string
+          format: date
+
+    user_login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          example: 'thisispassword'
+      required:
+      - email
+      - password
+
+    user_signup:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          example: 'thisispassword'
+        name:
+          type: string
+        birth:
+          type: string
+          format: date
+      required:
+      - email
+      - password
+      - name
+
+    token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          format: jwt
+
+  securitySchemes:
+    ApiKey:
+      in: header
+      type: apiKey
+      name: x-api-key
+    AccessToken:
+      in: header
+      type: apiKey
+      name: x-access-token
+    UserEmail:
+      in: header
+      type: apiKey
+      name: x-user-email
