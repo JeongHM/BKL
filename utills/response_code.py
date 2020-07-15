@@ -50,5 +50,9 @@ RESPONSE_CODE = {
     'FAIL_REFRESH_TOKEN': {
         'message': '토큰 리프레쉬에 실패 했습니다.',
         'result': None
+    },
+    'BLOCKED_EMAIL': {
+        'message': '해당 계정은 블럭 계정입니다.',
+        'result': None
     }
 }

@@ -3,7 +3,7 @@ import hashlib
 from flask import current_app
 from datetime import datetime
 
-from models import mongo
+from models import mongo, r
 from validators.users import (UserListSchema,
                               UserSignInSchema,
                               UserSignUpSchema)
@@ -162,8 +162,17 @@ class UserService(object):
         :return: Boolean, (String or List)
         """
         try:
+            email = self._body.get('email')
+            fail_count = int(r.get(name=email))
+            if fail_count >= 5:
+                return False, 'BLOCKED_EMAIL'
+
             if not self.check_password():
+                r.incr(name=email, amount=1)
                 raise ValueError('incorrect password')
+
+            if fail_count:
+                r.set(name=email, value=0)
 
         except Exception as e:
             current_app.logger.error(e)
@@ -188,6 +197,11 @@ class UserService(object):
             return False, None
 
     def set_salt_hash_password(self) -> bool:
+        """
+        user password sha512 hash by salt
+        salt: unix timestamp
+        :return:
+        """
         try:
             salt = str(datetime.utcnow().timestamp()).split('.')[0]
             password = self._body.get('password')
@@ -204,6 +218,10 @@ class UserService(object):
             return True
 
     def check_password(self) -> bool:
+        """
+        check password
+        :return:
+        """
         try:
             email, password = self._body.get('email'), self._body.get('password')
 
@@ -223,6 +241,10 @@ class UserService(object):
             return True
 
     def check_email_can_use(self):
+        """
+        check email when user sign up to email
+        :return:
+        """
         try:
             user = mongo.db.users.find_one({"email": self._body.get('email')})
             if user:
